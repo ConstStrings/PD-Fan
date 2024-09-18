@@ -3,19 +3,19 @@
         {
             "name": "PD_Fan",
             "includePath": [
-                "d:\\STM32_Project\\PD_Fan\\Core\\Inc",
-                "d:\\STM32_Project\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Inc",
-                "d:\\STM32_Project\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
-                "d:\\STM32_Project\\PD_Fan\\Drivers\\CMSIS\\Device\\ST\\STM32F1xx\\Include",
-                "d:\\STM32_Project\\PD_Fan\\Drivers\\CMSIS\\Include",
-                "d:\\STM32_Project\\PD_Fan\\MDK-ARM\\Hardware",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Core\\Inc",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Inc",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Drivers\\CMSIS\\Device\\ST\\STM32F1xx\\Include",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Drivers\\CMSIS\\Include",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\MDK-ARM\\Hardware",
                 "E:\\Hardware\\MDK\\Core\\ARM\\ARMCLANG\\include",
                 "E:\\Hardware\\MDK\\Core\\ARM\\ARMCLANG\\include\\arm_linux",
                 "E:\\Hardware\\MDK\\Core\\ARM\\ARMCLANG\\include\\arm_linux_compat",
                 "E:\\Hardware\\MDK\\Core\\ARM\\ARMCLANG\\include\\libcxx",
-                "d:\\STM32_Project\\PD_Fan\\MDK-ARM",
-                "d:\\STM32_Project\\PD_Fan\\Core\\Src",
-                "d:\\STM32_Project\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Src"
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\MDK-ARM",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Core\\Src",
+                "d:\\Code\\git\\PD Fan\\2.Firmware\\PD_Fan\\Drivers\\STM32F1xx_HAL_Driver\\Src"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

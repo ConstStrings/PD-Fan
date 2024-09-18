@@ -8,7 +8,7 @@ volatile uint32_t high_val = 0;
 volatile uint32_t low_val = 0;
 
 extern fan_info info;
-uint8_t mode_flag = 0;
+uint8_t mode_flag = 1;
 
 void (*Timer_Event_CallBack)(void);
 uint8_t onePulse_flag = 0;
@@ -27,6 +27,24 @@ void ui_init()
     LCD_DrawRoundRectangle(115, 110, 210, 172, 20, WHITE);
     LCD_DrawRoundRectangle(220, 0, 320, 172, 20, WHITE);
 
+    LCD_DrawLine(30, 90, 180, 90, BLACK);
+    LCD_DrawLine(30, 95, 180, 95, BLACK);
+    LCD_DrawPoint(29, 90, BLACK);
+    LCD_DrawPoint(28, 91, BLACK);
+    LCD_DrawPoint(27, 92, BLACK);
+    LCD_DrawPoint(27, 93, BLACK);
+    LCD_DrawPoint(28, 94, BLACK);
+    LCD_DrawPoint(29, 95, BLACK);
+    LCD_DrawPoint(181, 90, BLACK);
+    LCD_DrawPoint(182, 91, BLACK);
+    LCD_DrawPoint(183, 92, BLACK);
+    LCD_DrawPoint(183, 93, BLACK);
+    LCD_DrawPoint(182, 94, BLACK);
+    LCD_DrawPoint(181, 95, BLACK);
+}
+
+void load_word(void)
+{
     LCD_ShowString(10, 5, (uint8_t*)"Speed", BLACK, WHITE, 24, 0);
     LCD_ShowString(150, 60, (uint8_t*)"rpm", BLACK, WHITE, 24, 0);
 
@@ -52,21 +70,6 @@ void ui_init()
     LCD_ShowString(300, 35, (uint8_t*)"V", BLACK, WHITE, 24, 0);
     LCD_ShowString(300, 90, (uint8_t*)"A", BLACK, WHITE, 24, 0);
     LCD_ShowString(300, 144, (uint8_t*)"W", BLACK, WHITE, 24, 0);
-
-    LCD_DrawLine(30, 90, 180, 90, BLACK);
-    LCD_DrawLine(30, 95, 180, 95, BLACK);
-    LCD_DrawPoint(29, 90, BLACK);
-    LCD_DrawPoint(28, 91, BLACK);
-    LCD_DrawPoint(27, 92, BLACK);
-    LCD_DrawPoint(27, 93, BLACK);
-    LCD_DrawPoint(28, 94, BLACK);
-    LCD_DrawPoint(29, 95, BLACK);
-    LCD_DrawPoint(181, 90, BLACK);
-    LCD_DrawPoint(182, 91, BLACK);
-    LCD_DrawPoint(183, 92, BLACK);
-    LCD_DrawPoint(183, 93, BLACK);
-    LCD_DrawPoint(182, 94, BLACK);
-    LCD_DrawPoint(181, 95, BLACK);
 }
 
 void refresh_info(fan_info info)
@@ -92,7 +95,7 @@ void refresh_info(fan_info info)
 
     sprintf(buffer, "%02d.%02d", (int)info.cur_vol,(int)(info.cur_vol * 100) % 100);
     LCD_ShowString(232, 35, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
-    sprintf(buffer, "%.3f", info.cur_cut);
+    sprintf(buffer, "%01d.%03d", (int)info.cur_cut % 10,(int)(info.cur_cut * 1000) % 1000);
     LCD_ShowString(235, 90, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
     //sprintf(buffer, "%02d:%02d", info.time / 60, info.time % 60);
     sprintf(buffer, "%02d.%02d", (int)info.cur_pow,(int)(info.cur_pow * 100) % 100);
@@ -160,10 +163,10 @@ void show_duty(float duty)
 
 float pid_ctrl(fan_info info)
 {
-    float error = info.tar_rpm - info.cur_rpm;
-    float p = 0.1;
+    float error = (info.tar_rpm - info.cur_rpm) / 1000;
+    float p = 0.10;
     float i = 0.01;
-    float d = 0.01;
+    float d = 0.30;
     static float last_error = 0;
     static float sum_error = 0;
     sum_error += error;
@@ -225,6 +228,11 @@ void Timer_Event(uint32_t time,uint8_t onePulse,void (*func)(void))
     HAL_TIM_Base_Start_IT(&htim2);
 }
 
+void Timer_Event_Stop(void)
+{
+    HAL_TIM_Base_Stop_IT(&htim2);
+}
+
 uint8_t First_Event_flag = 1; //第一次会直接触发回调，原因未知
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -236,9 +244,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         else
         {
-            Timer_Event_CallBack();
             if(onePulse_flag)
                 HAL_TIM_Base_Stop_IT(&htim2);
+            Timer_Event_CallBack();
         }
     }
 }

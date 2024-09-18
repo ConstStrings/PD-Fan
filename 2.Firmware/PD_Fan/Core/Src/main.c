@@ -62,7 +62,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern uint8_t mode_flag;
-fan_info info = {0, 0, 0, 0, 0, 0, 0, 0};
+fan_info info = {0, 20000, 0, 0, 0, 0, 0, 0};
 uint8_t output_flag = 0;
 INA219_t ina219;
 /* USER CODE END 0 */
@@ -105,6 +105,7 @@ int main(void)
     INA219_Init(&ina219, &hi2c1, INA219_ADDRESS);
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
     ui_init();
+    load_word();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -193,8 +194,64 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void Toggle_Output(void)
 {
-    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_RESET)
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) == GPIO_PIN_RESET)//长按
         output_flag = !output_flag;
+    else    //短按
+    {
+      mode_flag = !mode_flag;
+      LCD_DrawRoundRectangle(0, 110, 110, 172, 20, WHITE);
+      load_word();
+    }
+}
+
+void Value_plus(void)
+{
+    static uint16_t delta_value = 1;
+
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET)
+    {
+      Timer_Event_Stop();
+      return;
+    }
+
+    if (mode_flag)
+    {
+        info.tar_rpm += delta_value;
+        if (info.tar_rpm > 65534)
+            info.tar_rpm = 65534;
+    }
+    else
+    {
+        info.tar_duty += delta_value;
+        if (info.tar_duty > 100)
+            info.tar_duty = 100;
+    }
+    //delta_value++;
+}
+
+void Value_sub(void)
+{
+    static uint16_t delta_value = 1;
+
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET)
+    {
+      Timer_Event_Stop();
+      return;
+    }
+
+    if (mode_flag)
+    {
+        info.tar_rpm -= delta_value;
+        if (info.tar_rpm == 65535)
+            info.tar_rpm = 0;
+    }
+    else
+    {
+        info.tar_duty -= delta_value;
+        if (info.tar_duty < 0)
+            info.tar_duty = 0;
+    }
+    //delta_value++;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -210,32 +267,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     case GPIO_PIN_10:
         if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_RESET)
         {
-            if (mode_flag)
-            {
-                info.tar_rpm += 1;
-                if (info.tar_rpm > 65534)
-                    info.tar_rpm = 65534;
-            }
-            else
-            {
-                info.tar_duty += 1;
-                if (info.tar_duty > 100)
-                    info.tar_duty = 100;
-            }
+            Timer_Event(100, 0, Value_plus);
         }
         break;
     case GPIO_PIN_1:
-        if (mode_flag)
-        {
-            info.tar_rpm -= 1;
-            if (info.tar_rpm == 65535)
-                info.tar_rpm = 0;
-        }
-        else
-        {
-            info.tar_duty -= 1;
-            if (info.tar_duty < 0)
-                info.tar_duty = 0;
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET)
+        {     
+            Timer_Event(100, 0, Value_sub);
         }
 
         break;

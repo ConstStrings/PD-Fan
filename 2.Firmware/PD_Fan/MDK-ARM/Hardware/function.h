@@ -34,7 +34,9 @@ void pwm_out(float value);
 void get_rtc_seconds(fan_info *info);
 void show_duty(float duty);
 float pid_ctrl(fan_info info);
+void load_word(void);
 
 void Timer_Event(uint32_t time, uint8_t onePulse, void (*func)(void));
+void Timer_Event_Stop(void);
 
 #endif
