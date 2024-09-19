@@ -62,7 +62,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern uint8_t mode_flag;
-fan_info info = {0, 2000, 0, 0, 0, 0, 0, 0};
+Back_Color Color = {WHITE, WHITE, WHITE, WHITE};
+fan_info info = {0, 2000, 0, 0, 0.04, 0, 0, 0};  
 uint8_t output_flag = 0;
 uint8_t reload_flag = 0;
 INA219_t ina219;
@@ -104,10 +105,11 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-    Load_Para(&info);
+    Load_Para(&info); //在定时器中断�?启之前加载参�?
     INA219_Init(&ina219, &hi2c1, INA219_ADDRESS);
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
-    ui_init();
+    system_init();
+    load_ui(Color);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,14 +118,14 @@ int main(void)
     {
         if(reload_flag)
         {
-            reload_word();
+            reload_word(Color);
             reload_flag = 0;
         }
         if (output_flag)
         {
             if (mode_flag)
             {
-                float output = pid_ctrl(info);
+                float output = get_pid();
                 pwm_out(output);
                 show_duty(output);
             }
@@ -138,10 +140,9 @@ int main(void)
             pwm_out(0);
             show_duty(0);
         }
-        get_rtc_seconds(&info);
-        get_status(&info);
-
-        refresh_info(info);
+        //get_rtc_seconds(&info);
+        check_current(info, &Color);
+        refresh_info(info, Color);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -206,7 +207,6 @@ void Toggle_Output(void)
     {
       mode_flag = !mode_flag;
       reload_flag = 1;
-      
     }
 }
 

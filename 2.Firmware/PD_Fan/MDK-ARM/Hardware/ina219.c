@@ -144,7 +144,7 @@ void INA219_SetCalibration_16V_8A(INA219_t *ina219)
 {
   uint16_t configInfo = INA219_CONFIG_VOLTAGE_RANGE_16V |
                     INA219_CONFIG_GAIN_2_80MV | INA219_CONFIG_BADCRES_12BIT |
-                    INA219_CONFIG_SADCRES_12BIT_1S_532US |
+                    INA219_CONFIG_SADCRES_12BIT_128S_69MS	 |
                     INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
 
   // Current_LSB = Maximum Expected Current / 2^15 = (80 / 10) / 2^15 = 0.0002

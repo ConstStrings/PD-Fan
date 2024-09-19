@@ -433,7 +433,7 @@ void LCD_DrawRoundRectangle_DMA(u16 x1, u16 y1, u16 x2, u16 y2, u16 r1,u16 color
 		}
 		for(int j = b_num; j < x2 - x1 - b_num; j++)
 		{
-			buffer[j] = color;
+			buffer[j] = color << 8 | color >> 8;
 		}
 		for(int j = x2 - x1 - b_num; j < x2 - x1; j++)
 		{
@@ -446,7 +446,7 @@ void LCD_DrawRoundRectangle_DMA(u16 x1, u16 y1, u16 x2, u16 y2, u16 r1,u16 color
 	{
 		for(int j = 0; j < x2 - x1; j++)
 		{
-			buffer[j] = color;
+			buffer[j] = color << 8 | color >> 8;
 		}
 		LCD_ShowPicture(x1, i, x2 - x1, 1, (u8*)buffer);
 	}
@@ -460,7 +460,7 @@ void LCD_DrawRoundRectangle_DMA(u16 x1, u16 y1, u16 x2, u16 y2, u16 r1,u16 color
 		}
 		for(int j = b_num; j < x2 - x1 - b_num; j++)
 		{
-			buffer[j] = color;
+			buffer[j] = color << 8 | color >> 8;
 		}
 		for(int j = x2 - x1 - b_num; j < x2 - x1; j++)
 		{

@@ -32,6 +32,14 @@ typedef struct fan_save
     uint8_t checkByte;
 }fan_save;
 
+typedef struct Back_Color
+{
+    uint16_t Block1;
+    uint16_t Block2;
+    uint16_t Block3;
+    uint16_t Block4;
+}Back_Color;
+
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -39,19 +47,23 @@ extern TIM_HandleTypeDef htim4;
 
 extern INA219_t ina219;
 
-void ui_init(void);
-void refresh_info(fan_info info);
+void system_init(void);
+void load_ui(Back_Color color);
+void refresh_info(fan_info info, Back_Color color);
 void get_status(fan_info* info);
 void pwm_out(float value);
 void get_rtc_seconds(fan_info *info);
 void show_duty(float duty);
 float pid_ctrl(fan_info info);
-void reload_word(void);
+void reload_word(Back_Color color);
+float get_pid(void);
 
 void Timer_Event(uint32_t time, uint8_t onePulse, void (*func)(void));
 void Timer_Event_Stop(void);
 
 void Load_Para(fan_info *info);
 void Save_Para(fan_info info);
+
+void check_current(fan_info info, Back_Color *color);
 
 #endif

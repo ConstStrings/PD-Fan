@@ -11,24 +11,28 @@ volatile uint32_t low_val = 0;
 extern fan_info info;
 uint8_t mode_flag = 1;
 
+float pid_value = 0.0;
+
 void (*Timer_Event_CallBack)(void);
 uint8_t onePulse_flag = 0;
 
 
-void ui_init()
+void system_init(void)
 {
     LCD_Init();
 	
+    LCD_Fill(0, 0, 320, 240, BLACK);
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);
     __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE);
     HAL_TIM_Base_Start_IT(&htim4);
-	
-    LCD_Fill(0,0,320,172,BLACK);
+}
 
-    LCD_DrawRoundRectangle_DMA(0, 0, 210, 100, 20, WHITE);
-    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
-    LCD_DrawRoundRectangle_DMA(115, 110, 210, 172, 20, WHITE);
-    LCD_DrawRoundRectangle_DMA(220, 0, 320, 172, 20, WHITE);
+void load_ui(Back_Color color)
+{
+    LCD_DrawRoundRectangle_DMA(0, 0, 210, 100, 20, color.Block1);
+    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, color.Block2);
+    LCD_DrawRoundRectangle_DMA(115, 110, 210, 172, 20, color.Block3);
+    LCD_DrawRoundRectangle_DMA(220, 0, 320, 172, 20, color.Block4);
 
     LCD_DrawLine(30, 90, 180, 90, BLACK);
     LCD_DrawLine(30, 95, 180, 95, BLACK);
@@ -45,77 +49,77 @@ void ui_init()
     LCD_DrawPoint(182, 94, BLACK);
     LCD_DrawPoint(181, 95, BLACK);
 
-    LCD_ShowString(10, 5, (uint8_t*)"Speed", BLACK, WHITE, 24, 0);
-    LCD_ShowString(150, 60, (uint8_t*)"rpm", BLACK, WHITE, 24, 0);
+    LCD_ShowString(10, 5, (uint8_t*)"Speed", BLACK, color.Block1, 24, 0);
+    LCD_ShowString(150, 60, (uint8_t*)"rpm", BLACK, color.Block1, 24, 0);
 
     if(mode_flag)
     {
-        LCD_ShowString(20, 110, (uint8_t*)"Target", BLACK, WHITE, 24, 0);
-        LCD_ShowString(80, 145, (uint8_t*)"rpm", BLACK, WHITE, 16, 0);
+        LCD_ShowString(20, 110, (uint8_t*)"Target", BLACK, color.Block2, 24, 0);
+        LCD_ShowString(80, 145, (uint8_t*)"rpm", BLACK, color.Block2, 16, 0);
     }
     else
     {
-        LCD_ShowString(30, 110, (uint8_t*)"Duty", BLACK, WHITE, 24, 0);
-        LCD_ShowString(80, 140, (uint8_t*)"%", BLACK, WHITE, 24, 0);
+        LCD_ShowString(30, 110, (uint8_t*)"Duty", BLACK, color.Block2, 24, 0);
+        LCD_ShowString(80, 140, (uint8_t*)"%", BLACK, color.Block2, 24, 0);
     }
     
 
 
-    LCD_ShowString(190, 140, (uint8_t*)"A", BLACK, WHITE, 24, 0);
-    LCD_ShowString(135, 110, (uint8_t*)"Limit", BLACK, WHITE, 24, 0);
+    LCD_ShowString(190, 140, (uint8_t*)"A", BLACK, color.Block3, 24, 0);
+    LCD_ShowString(135, 110, (uint8_t*)"Limit", BLACK, color.Block3, 24, 0);
 
-    LCD_ShowString(230, 5, (uint8_t*)"Voltage", BLACK, WHITE, 24, 0);
-    LCD_ShowString(230, 65, (uint8_t*)"Current", BLACK, WHITE, 24, 0);
-    LCD_ShowString(240, 118, (uint8_t*)"Power", BLACK, WHITE, 24, 0);
-    LCD_ShowString(300, 35, (uint8_t*)"V", BLACK, WHITE, 24, 0);
-    LCD_ShowString(300, 90, (uint8_t*)"A", BLACK, WHITE, 24, 0);
-    LCD_ShowString(300, 144, (uint8_t*)"W", BLACK, WHITE, 24, 0);
+    LCD_ShowString(230, 5, (uint8_t*)"Voltage", BLACK, color.Block4, 24, 0);
+    LCD_ShowString(230, 65, (uint8_t*)"Current", BLACK, color.Block4, 24, 0);
+    LCD_ShowString(240, 118, (uint8_t*)"Power", BLACK, color.Block4, 24, 0);
+    LCD_ShowString(300, 35, (uint8_t*)"V", BLACK, color.Block4, 24, 0);
+    LCD_ShowString(300, 90, (uint8_t*)"A", BLACK, color.Block4, 24, 0);
+    LCD_ShowString(300, 144, (uint8_t*)"W", BLACK, color.Block4, 24, 0);
 }
 
-void reload_word(void)
+void reload_word(Back_Color color)
 {
-    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
+    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, color.Block2);
 
     if(mode_flag)
     {
-        LCD_ShowString(20, 110, (uint8_t*)"Target", BLACK, WHITE, 24, 0);
-        LCD_ShowString(80, 145, (uint8_t*)"rpm", BLACK, WHITE, 16, 0);
+        LCD_ShowString(20, 110, (uint8_t*)"Target", BLACK, color.Block2, 24, 0);
+        LCD_ShowString(80, 145, (uint8_t*)"rpm", BLACK, color.Block2, 16, 0);
     }
     else
     {
-        LCD_ShowString(30, 110, (uint8_t*)"Duty", BLACK, WHITE, 24, 0);
-        LCD_ShowString(80, 140, (uint8_t*)"%", BLACK, WHITE, 24, 0);
+        LCD_ShowString(30, 110, (uint8_t*)"Duty", BLACK, color.Block2, 24, 0);
+        LCD_ShowString(80, 140, (uint8_t*)"%", BLACK, color.Block2, 24, 0);
     }
 }
 
-void refresh_info(fan_info info)
+void refresh_info(fan_info info, Back_Color color)
 {
     char buffer[30];
     sprintf(buffer, "%05d", info.cur_rpm);
-    LCD_ShowString(60, 35, (uint8_t*)buffer, BLACK, WHITE, 32, 0);
+    LCD_ShowString(60, 35, (uint8_t*)buffer, BLACK, color.Block1, 32, 0);
 
     if(mode_flag)
     {
         sprintf(buffer, "%05d", info.tar_rpm);
-        LCD_ShowString(15, 140, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
+        LCD_ShowString(15, 140, (uint8_t*)buffer, BLACK, color.Block2, 24, 0);
     }
     else
     {
         sprintf(buffer, "%03d", info.tar_duty);
-        LCD_ShowString(25, 135, (uint8_t*)buffer, BLACK, WHITE, 32, 0);
+        LCD_ShowString(25, 135, (uint8_t*)buffer, BLACK, color.Block2, 32, 0);
     }
 
 
     sprintf(buffer, "%02.2f", info.tar_cut);
-    LCD_ShowString(125, 135, (uint8_t*)buffer, BLACK, WHITE, 32, 0);
+    LCD_ShowString(125, 135, (uint8_t*)buffer, BLACK, color.Block3, 32, 1);
 
     sprintf(buffer, "%02d.%02d", (int)info.cur_vol,(int)(info.cur_vol * 100) % 100);
-    LCD_ShowString(232, 35, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
+    LCD_ShowString(232, 35, (uint8_t*)buffer, BLACK, color.Block4, 24, 0);
     sprintf(buffer, "%01d.%03d", (int)info.cur_cut % 10,(int)(info.cur_cut * 1000) % 1000);
-    LCD_ShowString(235, 90, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
+    LCD_ShowString(235, 90, (uint8_t*)buffer, BLACK, color.Block4, 24, 0);
     //sprintf(buffer, "%02d:%02d", info.time / 60, info.time % 60);
     sprintf(buffer, "%02d.%02d", (int)info.cur_pow,(int)(info.cur_pow * 100) % 100);
-    LCD_ShowString(236, 144, (uint8_t*)buffer, BLACK, WHITE, 24, 0);
+    LCD_ShowString(236, 144, (uint8_t*)buffer, BLACK, color.Block4, 24, 0);
 }
 
 void get_status(fan_info* info)
@@ -177,7 +181,7 @@ void show_duty(float duty)
     }
 }
 
-float pid_ctrl(fan_info info)
+float pid_speed(fan_info info)
 {
     float error = (info.tar_rpm - info.cur_rpm) / 1000.0;
 
@@ -199,6 +203,31 @@ float pid_ctrl(fan_info info)
     else if(output < 0.0)
         output = 0.0;
     return output;
+}
+
+float pid_current(fan_info info)
+{
+    float error = (info.tar_cut - info.cur_cut);
+
+    float p = 10.0;
+    float i = 0.4;
+    float d = 1.0;
+
+    static float last_error = 0;
+    static float sum_error = 0;
+    sum_error += error;
+    float output = p * error + i * sum_error + d * (error - last_error);
+    last_error = error;
+    if(output > 1.0)
+        output = 1.0;
+    else if(output < 0.0)
+        output = 0.0;
+    return output;
+}
+
+float pid_ctrl(fan_info info)
+{
+    return pid_current(info);
 }
 
 void Save_Para(fan_info info)
@@ -251,9 +280,46 @@ void Load_Para(fan_info* info)
     if(save.checkByte == 0x74)
     {
         info->tar_rpm = save.tar_rpm;
-        info->tar_cut = save.tar_cut;
+        //info->tar_cut = save.tar_cut;
         info->tar_duty = save.tar_duty;
     }
+}
+
+void check_current(fan_info info,Back_Color *color)
+{
+    static uint16_t pre_color = 0;
+
+    if(info.cur_cut > info.tar_cut)
+    {
+        color->Block3 = RED;
+    }
+    else if(info.cur_cut > (info.tar_cut * 0.9))
+    {
+        // uint16_t r = (int)(32 * (info.tar_cut - info.cur_cut) / (info.tar_cut * 0.1));
+        // color->Block3 = (r << 11) | (color->Block3 & 0x07FF);
+        color->Block3 = YELLOW;
+    }
+    else
+    {
+        color->Block3 = WHITE;
+    }
+
+    if(pre_color == color->Block3)
+    {
+        pre_color = color->Block3;
+        return;
+    }
+
+    LCD_DrawRoundRectangle_DMA(115, 110, 210, 172, 20, color->Block3);
+    LCD_ShowString(190, 140, (uint8_t*)"A", BLACK, color->Block3, 24, 0);
+    LCD_ShowString(135, 110, (uint8_t*)"Limit", BLACK, color->Block3, 24, 0);
+
+    pre_color = color->Block3;
+}
+
+float get_pid(void)
+{
+    return pid_value;
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
@@ -335,8 +401,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
     if(htim->Instance == TIM4)
     {
-        Save_Para(info);
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        static int cnt = 0;
+        if(mode_flag)
+            get_status(&info);
+            pid_value = pid_ctrl(info);
+
+        if(cnt >= 10)
+        {
+            Save_Para(info);
+            cnt = 0;
+        }
+        cnt++;
     }
 }
 
