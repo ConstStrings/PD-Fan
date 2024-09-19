@@ -21,6 +21,7 @@ void ui_init()
 	
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);
     __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE);
+    HAL_TIM_Base_Start_IT(&htim4);
 	
     LCD_Fill(0,0,320,172,BLACK);
 
@@ -43,10 +44,7 @@ void ui_init()
     LCD_DrawPoint(183, 93, BLACK);
     LCD_DrawPoint(182, 94, BLACK);
     LCD_DrawPoint(181, 95, BLACK);
-}
 
-void load_word(void)
-{
     LCD_ShowString(10, 5, (uint8_t*)"Speed", BLACK, WHITE, 24, 0);
     LCD_ShowString(150, 60, (uint8_t*)"rpm", BLACK, WHITE, 24, 0);
 
@@ -72,6 +70,22 @@ void load_word(void)
     LCD_ShowString(300, 35, (uint8_t*)"V", BLACK, WHITE, 24, 0);
     LCD_ShowString(300, 90, (uint8_t*)"A", BLACK, WHITE, 24, 0);
     LCD_ShowString(300, 144, (uint8_t*)"W", BLACK, WHITE, 24, 0);
+}
+
+void reload_word(void)
+{
+    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
+
+    if(mode_flag)
+    {
+        LCD_ShowString(20, 110, (uint8_t*)"Target", BLACK, WHITE, 24, 0);
+        LCD_ShowString(80, 145, (uint8_t*)"rpm", BLACK, WHITE, 16, 0);
+    }
+    else
+    {
+        LCD_ShowString(30, 110, (uint8_t*)"Duty", BLACK, WHITE, 24, 0);
+        LCD_ShowString(80, 140, (uint8_t*)"%", BLACK, WHITE, 24, 0);
+    }
 }
 
 void refresh_info(fan_info info)
@@ -165,10 +179,16 @@ void show_duty(float duty)
 
 float pid_ctrl(fan_info info)
 {
-    float error = (info.tar_rpm - info.cur_rpm) / 1000;
-    float p = 0.10;
-    float i = 0.01;
-    float d = 0.30;
+    float error = (info.tar_rpm - info.cur_rpm) / 1000.0;
+
+    // float p = 0.10;
+    // float i = 0.01;
+    // float d = 0.30;
+
+    float p = 0.50;
+    float i = 0.05;
+    float d = 0.00;
+
     static float last_error = 0;
     static float sum_error = 0;
     sum_error += error;
@@ -179,6 +199,61 @@ float pid_ctrl(fan_info info)
     else if(output < 0.0)
         output = 0.0;
     return output;
+}
+
+void Save_Para(fan_info info)
+{
+    HAL_FLASH_Unlock();
+
+    FLASH_EraseInitTypeDef EraseInitStruct;
+    uint32_t SectorError = 0;
+
+    EraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;    
+    EraseInitStruct.PageAddress = PARAM_ADD;                  
+    EraseInitStruct.NbPages = 1;                            
+
+    if (HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    uint32_t flash_address = PARAM_ADD;
+    fan_save save;
+    save.tar_rpm = info.tar_rpm;
+    save.tar_cut = info.tar_cut;
+    save.tar_duty = info.tar_duty;
+    save.checkByte = 0x74;
+
+    size_t num_words = sizeof(save) / 4;
+    uint32_t* p_data = (uint32_t*)&save;
+
+    for (size_t i = 0; i < num_words; i++) {
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, flash_address, p_data[i]) != HAL_OK) {
+            break;
+        }
+        flash_address += 32;
+    }
+
+    HAL_FLASH_Lock();
+}
+
+void Load_Para(fan_info* info)
+{
+    fan_save save;
+    uint32_t flash_address = PARAM_ADD;
+    size_t num_words = sizeof(save) / 4;
+    uint32_t* p_data = (uint32_t*)&save;
+
+    for (size_t i = 0; i < num_words; i++) {
+        p_data[i] = *(uint32_t*)flash_address;
+        flash_address += 32;
+    }
+    if(save.checkByte == 0x74)
+    {
+        info->tar_rpm = save.tar_rpm;
+        info->tar_cut = save.tar_cut;
+        info->tar_duty = save.tar_duty;
+    }
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
@@ -257,6 +332,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Duty = 0;
         capture_cnt = 1;   // 重置捕获状态
         capture_end_flag = 1;  // 标志捕获结束
+    }
+    if(htim->Instance == TIM4)
+    {
+        Save_Para(info);
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     }
 }
 

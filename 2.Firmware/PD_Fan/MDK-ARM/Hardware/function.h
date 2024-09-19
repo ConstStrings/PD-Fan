@@ -10,6 +10,8 @@
 
 #define longPressThreshold 1000 
 
+#define PARAM_ADD 0x08000000 + 0x0000F800
+
 typedef struct fan_info
 {
     uint16_t cur_rpm;
@@ -22,9 +24,18 @@ typedef struct fan_info
     uint32_t time;
 }fan_info;
 
+typedef struct fan_save
+{
+    uint16_t tar_rpm;
+    float tar_cut;
+    int8_t tar_duty;
+    uint8_t checkByte;
+}fan_save;
+
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 
 extern INA219_t ina219;
 
@@ -35,9 +46,12 @@ void pwm_out(float value);
 void get_rtc_seconds(fan_info *info);
 void show_duty(float duty);
 float pid_ctrl(fan_info info);
-void load_word(void);
+void reload_word(void);
 
 void Timer_Event(uint32_t time, uint8_t onePulse, void (*func)(void));
 void Timer_Event_Stop(void);
+
+void Load_Para(fan_info *info);
+void Save_Para(fan_info info);
 
 #endif

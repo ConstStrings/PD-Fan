@@ -62,8 +62,9 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern uint8_t mode_flag;
-fan_info info = {0, 20000, 0, 0, 0, 0, 0, 0};
+fan_info info = {0, 2000, 0, 0, 0, 0, 0, 0};
 uint8_t output_flag = 0;
+uint8_t reload_flag = 0;
 INA219_t ina219;
 /* USER CODE END 0 */
 
@@ -101,17 +102,23 @@ int main(void)
   MX_I2C1_Init();
   MX_RTC_Init();
   MX_TIM2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+    Load_Para(&info);
     INA219_Init(&ina219, &hi2c1, INA219_ADDRESS);
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
     ui_init();
-    load_word();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1)
     {
+        if(reload_flag)
+        {
+            reload_word();
+            reload_flag = 0;
+        }
         if (output_flag)
         {
             if (mode_flag)
@@ -138,7 +145,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
         HAL_Delay(1);
     }
   /* USER CODE END 3 */
@@ -199,8 +205,8 @@ void Toggle_Output(void)
     else    //短按
     {
       mode_flag = !mode_flag;
-      LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
-      load_word();
+      reload_flag = 1;
+      
     }
 }
 
@@ -211,6 +217,7 @@ void Value_plus(void)
     if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10) == GPIO_PIN_SET)
     {
       Timer_Event_Stop();
+      delta_value = 1;
       return;
     }
 
@@ -222,11 +229,11 @@ void Value_plus(void)
     }
     else
     {
-        info.tar_duty += delta_value;
+        info.tar_duty += 1;
         if (info.tar_duty > 100)
             info.tar_duty = 100;
     }
-    //delta_value++;
+    delta_value++;
 }
 
 void Value_sub(void)
@@ -236,6 +243,7 @@ void Value_sub(void)
     if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET)
     {
       Timer_Event_Stop();
+      delta_value = 1;
       return;
     }
 
@@ -247,11 +255,11 @@ void Value_sub(void)
     }
     else
     {
-        info.tar_duty -= delta_value;
+        info.tar_duty -= 1;
         if (info.tar_duty < 0)
             info.tar_duty = 0;
     }
-    //delta_value++;
+    delta_value++;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
