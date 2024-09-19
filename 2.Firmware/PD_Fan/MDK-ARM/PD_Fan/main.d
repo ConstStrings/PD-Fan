@@ -7,9 +7,9 @@ pd_fan/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f103xb.h \
   ..\Drivers\CMSIS\Include\core_cm3.h \
   E:\Hardware\MDK\Core\ARM\ARMCLANG\include\stdint.h \
-  d:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_version.h \
-  d:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_compiler.h \
-  d:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_armclang.h \
+  D:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_version.h \
+  D:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_compiler.h \
+  D:\Code\git\PD\ Fan\2.Firmware\PD_Fan\Drivers\CMSIS\Include\cmsis_armclang.h \
   E:\Hardware\MDK\Core\ARM\ARMCLANG\include\arm_compat.h \
   E:\Hardware\MDK\Core\ARM\ARMCLANG\include\arm_acle.h \
   ..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\system_stm32f1xx.h \
@@ -33,6 +33,7 @@ pd_fan/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   ..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_tim_ex.h \
   ..\Core\Inc\i2c.h ..\Core\Inc\rtc.h ..\Core\Inc\spi.h \
   ..\Core\Inc\tim.h ..\Core\Inc\gpio.h Hardware\lcd.h \
-  E:\Hardware\MDK\Core\ARM\ARMCLANG\include\stdlib.h Hardware\lcd_init.h \
+  E:\Hardware\MDK\Core\ARM\ARMCLANG\include\stdlib.h \
+  E:\Hardware\MDK\Core\ARM\ARMCLANG\include\math.h Hardware\lcd_init.h \
   Hardware\function.h E:\Hardware\MDK\Core\ARM\ARMCLANG\include\stdio.h \
   Hardware\ina219.h

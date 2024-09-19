@@ -419,4 +419,53 @@ void LCD_DrawRoundRectangle(u16 x1, u16 y1, u16 x2, u16 y2, u16 r,u16 color)
 
 }
 
+void LCD_DrawRoundRectangle_DMA(u16 x1, u16 y1, u16 x2, u16 y2, u16 r1,u16 color)
+{
+	static uint16_t buffer[320];
+	volatile u16 r = r1;
+	for(int i = y1; i < y1 + r; i++)
+	{
+		uint16_t b_num = (int)(r - sqrt(r*r - (r - i + y1)*(r - i + y1)));
+		
+		for(int j = 0; j < b_num; j++)
+		{ 
+			buffer[j] = BLACK;
+		}
+		for(int j = b_num; j < x2 - x1 - b_num; j++)
+		{
+			buffer[j] = color;
+		}
+		for(int j = x2 - x1 - b_num; j < x2 - x1; j++)
+		{
+			buffer[j] = BLACK;
+		}
+		LCD_ShowPicture(x1, i, x2 - x1, 1, (u8*)buffer);
+	}
 
+	for(int i = y1 + r; i <= y2 - r; i++)
+	{
+		for(int j = 0; j < x2 - x1; j++)
+		{
+			buffer[j] = color;
+		}
+		LCD_ShowPicture(x1, i, x2 - x1, 1, (u8*)buffer);
+	}
+
+	for(int i = y2 - r + 1; i <= y2; i++)
+	{
+		uint16_t b_num = (int)(r - sqrt(r*r - (i - y2 + r )*(i - y2 + r)));
+		for(int j = 0; j < b_num; j++)
+		{
+			buffer[j] = BLACK;
+		}
+		for(int j = b_num; j < x2 - x1 - b_num; j++)
+		{
+			buffer[j] = color;
+		}
+		for(int j = x2 - x1 - b_num; j < x2 - x1; j++)
+		{
+			buffer[j] = BLACK;
+		}
+		LCD_ShowPicture(x1, i, x2 - x1, 1, (u8*)buffer);
+	}
+}

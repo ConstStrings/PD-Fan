@@ -2,6 +2,7 @@
 #define __LCD_H		
 #include "main.h"
 #include "stdlib.h"
+#include "math.h"
 
 #define u8 uint8_t
 #define u16 uint16_t
@@ -27,6 +28,7 @@ void LCD_ShowFloatNum1(u16 x,u16 y,float num,u8 len,u16 fc,u16 bc,u8 sizey);//�
 
 void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[]);//��ʾͼƬ
 void LCD_ShowPicture_DMA(u16 x, u16 y, u16 length, u16 width, const u8 pic[]);
+void LCD_DrawRoundRectangle_DMA(u16 x1, u16 y1, u16 x2, u16 y2, u16 r, u16 color);
 
 //������ɫ
 #define WHITE         	 0xFFFF

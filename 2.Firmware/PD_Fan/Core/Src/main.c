@@ -199,7 +199,7 @@ void Toggle_Output(void)
     else    //短按
     {
       mode_flag = !mode_flag;
-      LCD_DrawRoundRectangle(0, 110, 110, 172, 20, WHITE);
+      LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
       load_word();
     }
 }

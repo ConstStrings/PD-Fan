@@ -3,6 +3,7 @@
 volatile float Freq = 0.0;
 volatile float Duty = 0.0;
 volatile int capture_end_flag = 0;
+volatile uint8_t capture_cnt = 1;
  
 volatile uint32_t high_val = 0;
 volatile uint32_t low_val = 0;
@@ -19,13 +20,14 @@ void ui_init()
     LCD_Init();
 	
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);
+    __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE);
 	
     LCD_Fill(0,0,320,172,BLACK);
 
-    LCD_DrawRoundRectangle(0, 0, 210, 100, 20, WHITE);
-    LCD_DrawRoundRectangle(0, 110, 110, 172, 20, WHITE);
-    LCD_DrawRoundRectangle(115, 110, 210, 172, 20, WHITE);
-    LCD_DrawRoundRectangle(220, 0, 320, 172, 20, WHITE);
+    LCD_DrawRoundRectangle_DMA(0, 0, 210, 100, 20, WHITE);
+    LCD_DrawRoundRectangle_DMA(0, 110, 110, 172, 20, WHITE);
+    LCD_DrawRoundRectangle_DMA(115, 110, 210, 172, 20, WHITE);
+    LCD_DrawRoundRectangle_DMA(220, 0, 320, 172, 20, WHITE);
 
     LCD_DrawLine(30, 90, 180, 90, BLACK);
     LCD_DrawLine(30, 95, 180, 95, BLACK);
@@ -180,9 +182,7 @@ float pid_ctrl(fan_info info)
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{    
-    static uint8_t capture_cnt = 1;    //电平捕捉计数
-    
+{        
     if(htim->Instance == TIM1)       
     {    
         if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)    
@@ -195,6 +195,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
                     __HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING); //设置成下降沿触发
                     __HAL_TIM_SetCounter(htim, 0);    //清空定时器计数值
                     high_val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);    //由第一个上升沿设为起始位置
+                    //__HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
                     
                 }else if(capture_cnt == 2)    //第一个下降沿
                 {
@@ -209,10 +210,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
                     high_val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
                       
                     //计算频率
-                    Freq = (float)72000000 / 72 / (high_val+1);
+                    Freq = (float)72000000 / 720 / (high_val+1);
                     //计算占空比
                     Duty = (float)(low_val+1) / (high_val+1);
                     capture_end_flag = 1;
+                    //__HAL_TIM_DISABLE_IT(htim, TIM_IT_UPDATE);
                 }
             }
         }
@@ -248,6 +250,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 HAL_TIM_Base_Stop_IT(&htim2);
             Timer_Event_CallBack();
         }
+    }
+    if(htim->Instance == TIM1)
+    {
+        Freq = 0;
+        Duty = 0;
+        capture_cnt = 1;   // 重置捕获状态
+        capture_end_flag = 1;  // 标志捕获结束
     }
 }
 
