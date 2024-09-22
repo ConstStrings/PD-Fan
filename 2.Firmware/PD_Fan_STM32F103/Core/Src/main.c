@@ -105,7 +105,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-    Load_Para(&info); //在定时器中断�?启之前加载参�?
+    Load_Para(&info); //在定时器中断�??启之前加载参�??
     INA219_Init(&ina219, &hi2c1, INA219_ADDRESS);
     HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
     system_init();
